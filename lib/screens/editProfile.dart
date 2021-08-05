@@ -35,7 +35,7 @@ class _EditProfileState extends State<EditProfile> {
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
 
   RefreshController _refreshController =
-  RefreshController(initialRefresh: false);
+      RefreshController(initialRefresh: false);
 
   void _onRefresh() async {
     // monitor network fetch
@@ -82,7 +82,7 @@ class _EditProfileState extends State<EditProfile> {
     final postCodeNode = FocusNode();*/
 
     final focusNode = FocusNode();
-
+    print("Name::: ${widget.data?.name} ");
     return Scaffold(
       key: _editProfileKey,
       drawer: NavigationDrawer(),
@@ -204,7 +204,8 @@ class _EditProfileState extends State<EditProfile> {
                         fit: BoxFit.cover)),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 10.0, left: 10.0,right:10.0),
+                padding:
+                    const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
                 child: AppBar(
                   centerTitle: true,
                   leading: CircleAvatar(
@@ -281,22 +282,25 @@ class _EditProfileState extends State<EditProfile> {
                                   key: _fbKey,
                                   initialValue: {
                                     'first_name':
-                                    splitName(widget.data?.name, '1'),
+                                        splitName(widget.data?.name, '2'),
                                     'last_name':
-                                    splitName(widget.data?.name, '2'),
+                                        splitName(widget.data?.name, '1'),
                                     'email': widget.data?.contactMethodEmail,
                                     'mobile_no':
-                                    widget.data?.contactMethodMobile,
+                                        widget.data?.contactMethodMobile,
                                     'home_phone_no':
-                                    widget.data?.contactMethodPhoneHome,
+                                        widget.data?.contactMethodPhoneHome,
                                     'work_phone_no':
-                                    widget.data?.contactMethodPhoneWork,
-                                    'street_address':
-                                    widget.data?.addressPhysical?.streetAddressFull,
-                                    'suburb': widget.data?.addressPhysical?.suburb,
-                                    'post_code': widget.data?.addressPhysical?.postcode,
+                                        widget.data?.contactMethodPhoneWork,
+                                    'street_address': widget.data
+                                        ?.addressPhysical?.streetAddressFull,
+                                    'suburb':
+                                        widget.data?.addressPhysical?.suburb,
+                                    'post_code':
+                                        widget.data?.addressPhysical?.postcode,
                                   },
-                                  readOnly: false,
+                                  //enabled: false,
+                                  //readOnly: false,
                                   child: Column(
                                     children: [
                                       /*!_isLarge
@@ -911,35 +915,39 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "first_name",
+                                            name: "first_name",
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "First Name",
                                                 "Enter First Name"),
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               // lastNameNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             keyboardType: TextInputType.text,
-                                            validators: [
-                                              FormBuilderValidators.min(3),
-                                              CustomFormBuilderValidators
-                                                  .charOnly(),
-                                              FormBuilderValidators.maxLength(
-                                                  20),
-                                              FormBuilderValidators.required(),
-                                              FormBuilderValidators.minLength(
-                                                  3),
-                                            ],
+
+                                            // validator:
+                                            //     FormBuilderValidators.compose([
+                                            //   FormBuilderValidators.min(
+                                            //       context, 3),
+                                            //   CustomFormBuilderValidators
+                                            //       .charOnly(),
+                                            //   FormBuilderValidators.maxLength(
+                                            //       context, 20),
+                                            //   FormBuilderValidators.required(
+                                            //       context),
+                                            //   FormBuilderValidators.minLength(
+                                            //       context, 3),
+                                            // ]),
                                           ),
                                           SizedBox(
                                             height: 20,
                                           ),
                                           FormBuilderTextField(
                                             // focusNode: lastNameNode,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               //  emailNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -948,33 +956,35 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "last_name",
+                                            name: "last_name",
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Last Name",
                                                 "Enter Last Name"),
                                             keyboardType: TextInputType.text,
-                                            validators: [
+                                            validator:
+                                                FormBuilderValidators.compose([
                                               CustomFormBuilderValidators
                                                   .charOnly(),
                                               FormBuilderValidators.minLength(
-                                                  3),
+                                                  context, 3),
                                               FormBuilderValidators.maxLength(
-                                                  20),
-                                              FormBuilderValidators.required()
-                                            ],
+                                                  context, 20),
+                                              FormBuilderValidators.required(
+                                                  context)
+                                            ]),
                                           ),
                                           SizedBox(
                                             height: 20,
                                           ),
                                           FormBuilderTextField(
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             //focusNode: emailNode,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               // mobileNoNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -982,25 +992,30 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "email",
+                                            name: "email",
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Email Address",
                                                 "Enter Email Address"),
                                             keyboardType:
-                                            TextInputType.emailAddress,
-                                            validators: [
-                                              FormBuilderValidators.email(),
-                                              FormBuilderValidators.required()
-                                            ],
+                                                TextInputType.emailAddress,
+                                            validator:
+                                                FormBuilderValidators.compose([
+                                              FormBuilderValidators.email(
+                                                  context),
+                                              FormBuilderValidators.required(
+                                                  context),
+                                            ]),
+
+                                            // FormBuilderValidators.required()
                                           ),
                                           SizedBox(height: 20),
                                           FormBuilderTextField(
                                             // focusNode: mobileNoNode,
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               //homePhoneNoNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -1008,7 +1023,7 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "mobile_no",
+                                            name: "mobile_no",
                                             //  maxLength: 11,
                                             inputFormatters: [
                                               WhitelistingTextInputFormatter
@@ -1019,11 +1034,11 @@ class _EditProfileState extends State<EditProfile> {
                                                 "Mobile Number",
                                                 "Enter Mobile Number"),
                                             keyboardType: TextInputType.number,
-                                            validators: [
-                                              //   FormBuilderValidators.numeric(),
-                                              //FormBuilderValidators.minLength(10),
-                                              FormBuilderValidators.required()
-                                            ],
+                                            validator:
+                                                //   FormBuilderValidators.numeric(),
+                                                //FormBuilderValidators.minLength(10),
+                                                FormBuilderValidators.required(
+                                                    context),
                                           ),
                                           SizedBox(
                                             height: 20,
@@ -1031,9 +1046,9 @@ class _EditProfileState extends State<EditProfile> {
                                           FormBuilderTextField(
                                             //  focusNode: homePhoneNoNode,
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               // workPhoneNoNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -1041,18 +1056,18 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "home_phone_no",
+                                            name: "home_phone_no",
                                             // maxLength: 15,
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Phone Number(Home)",
                                                 "Phone Number(Home)"),
                                             keyboardType: TextInputType.number,
-                                            validators: [
-                                              // FormBuilderValidators.minLength(10),
-                                              //  FormBuilderValidators.numeric(),
-                                              //FormBuilderValidators.required()
-                                            ],
+                                            //validators: [
+                                            // FormBuilderValidators.minLength(10),
+                                            //  FormBuilderValidators.numeric(),
+                                            //FormBuilderValidators.required()
+                                            //],
                                           ),
                                           SizedBox(
                                             height: 20,
@@ -1060,9 +1075,9 @@ class _EditProfileState extends State<EditProfile> {
                                           FormBuilderTextField(
                                             // focusNode: workPhoneNoNode,
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               // streetAddressNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -1070,7 +1085,7 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "work_phone_no",
+                                            name: "work_phone_no",
                                             //  maxLength: 10,
                                             inputFormatters: [
                                               WhitelistingTextInputFormatter
@@ -1081,21 +1096,21 @@ class _EditProfileState extends State<EditProfile> {
                                                 "Phone Number(Work)",
                                                 "Phone Number(Work)"),
                                             keyboardType: TextInputType.number,
-                                            validators: [
-                                              // FormBuilderValidators.numeric(),
-                                              // FormBuilderValidators.minLength(10),
-                                              // FormBuilderValidators.required()
-                                            ],
+                                            //validator: [
+                                            // FormBuilderValidators.numeric(),
+                                            // FormBuilderValidators.minLength(10),
+                                            // FormBuilderValidators.required()
+                                            //],
                                           ),
                                           SizedBox(
                                             height: 20,
                                           ),
                                           FormBuilderTextField(
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             // focusNode: streetAddressNode,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               //suburbNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -1103,25 +1118,24 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "street_address",
+                                            name: "street_address",
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Address",
                                                 "Enter Street Address"),
                                             keyboardType: TextInputType.text,
-                                            validators: [
-                                              FormBuilderValidators.maxLength(
-                                                  50),
-                                              // FormBuilderValidators.required()
-                                            ],
+                                            validator:
+                                                FormBuilderValidators.maxLength(
+                                                    context, 50),
+                                            // FormBuilderValidators.required()
                                           ),
                                           SizedBox(height: 20),
                                           FormBuilderTextField(
                                             textInputAction:
-                                            TextInputAction.next,
+                                                TextInputAction.next,
                                             //focusNode: suburbNode,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               // postCodeNode.requestFocus();
                                               return focusNode.nextFocus();
                                             },
@@ -1129,134 +1143,160 @@ class _EditProfileState extends State<EditProfile> {
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "suburb",
+                                            name: "suburb",
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Suburb",
                                                 "Enter Suburb"),
                                             keyboardType: TextInputType.text,
-                                            validators: [
-                                              FormBuilderValidators.maxLength(
-                                                  50),
-                                              //  FormBuilderValidators.required()
-                                            ],
+                                            validator:
+                                                FormBuilderValidators.maxLength(
+                                                    context, 50),
+                                            //  FormBuilderValidators.required()
                                           ),
                                           SizedBox(height: 20),
                                           FormBuilderTextField(
                                             textInputAction:
-                                            TextInputAction.done,
+                                                TextInputAction.done,
                                             //focusNode: postCodeNode,
                                             autofocus: true,
-                                            onFieldSubmitted: (value) {
+                                            onSubmitted: (value) {
                                               return focusNode.unfocus();
                                             },
                                             style: TextStyle(
                                               color: Color(0xff222222),
                                               fontFamily: "Montserrat",
                                             ),
-                                            attribute: "post_code",
+                                            name: "post_code",
                                             decoration: buildInputDecoration(
                                                 context,
                                                 "Postcode",
                                                 "Enter PostCode"),
                                             keyboardType: TextInputType.text,
-                                            validators: [
-                                              FormBuilderValidators.maxLength(
-                                                  50),
-                                              // FormBuilderValidators.required()
-                                            ],
+                                            validator:
+                                                FormBuilderValidators.maxLength(
+                                                    context, 50),
+                                            // FormBuilderValidators.required()
                                           ),
                                           SizedBox(height: 20),
                                         ],
                                       ),
-                                      _isLarge?Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        children: [
-                                          Expanded(
-                                            child: FlatButton(
-                                                color: Colors.grey,
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Padding(
-                                                  padding:
-                                                  const EdgeInsets.all(12.0),
-                                                  child: AutoSizeText('Back'.toUpperCase(),
-                                                      style: TextStyle(
-                                                          fontFamily: 'Montserrat',
+                                      _isLarge
+                                          ? Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: FlatButton(
+                                                      color: Colors.grey,
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(12.0),
+                                                        child: AutoSizeText(
+                                                            'Back'
+                                                                .toUpperCase(),
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'Montserrat',
+                                                                fontSize:
+                                                                    _isLarge
+                                                                        ? 18
+                                                                        : 16,
+                                                                // fontWeight:
+                                                                // FontWeight.bold,
+                                                                color: Colors
+                                                                    .white)),
+                                                      )),
+                                                ),
+                                                SizedBox(width: 5),
+                                                Expanded(
+                                                  child: FlatButton(
+                                                      color: kSecondaryColor,
+                                                      onPressed: () {
+                                                        updateProfile();
+                                                      },
+                                                      child: Padding(
+                                                        padding: EdgeInsets.all(
+                                                            12.0),
+                                                        child: AutoSizeText(
+                                                            'Update My Profile'
+                                                                .toUpperCase(),
+                                                            style: TextStyle(
+                                                                fontSize:
+                                                                    _isLarge
+                                                                        ? 18
+                                                                        : 16,
+                                                                fontFamily:
+                                                                    'Montserrat',
 
-                                                          fontSize:
-                                                          _isLarge ? 18 : 16,
-                                                          // fontWeight:
-                                                          // FontWeight.bold,
-                                                          color: Colors.white)),
-                                                )),
-                                          ),
-                                          SizedBox(width: 5),
-                                          Expanded(
-                                            child: FlatButton(
-                                                color: kSecondaryColor,
-                                                onPressed: () {
-                                                  updateProfile();
-                                                },
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(12.0),
-                                                  child: AutoSizeText(
-                                                      'Update My Profile'.toUpperCase(),
-                                                      style: TextStyle(
-                                                          fontSize:
-                                                          _isLarge ? 18 : 16,
-                                                          fontFamily: 'Montserrat',
-
-                                                          // fontWeight:
-                                                          // FontWeight.bold,
-                                                          color: Colors.white)),
-                                                )),
-                                          ),
-                                        ],
-                                      ):Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        children: [
-                                          FlatButton(
-                                              color: Colors.grey,
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                const EdgeInsets.all(12.0),
-                                                child: AutoSizeText('Back'.toUpperCase(),
-                                                    style: TextStyle(
-                                                        fontSize:
-                                                        _isLarge ? 18 : 16,
-                                                        fontWeight:
-                                                        FontWeight.bold,
-                                                        fontFamily: 'Montserrat',
-
-                                                        color: Colors.black)),
-                                              )),
-                                          SizedBox(width: 5),
-                                          FlatButton(
-                                              color: kSecondaryColor,
-                                              onPressed: () {
-                                                updateProfile();                                              },
-                                              child: Padding(
-                                                padding: EdgeInsets.all(12.0),
-                                                child: AutoSizeText(
-                                                    'Update My Profile'.toUpperCase(),
-                                                    style: TextStyle(
-                                                        fontSize:
-                                                        _isLarge ? 18 : 16,
-                                                        fontWeight:
-                                                        FontWeight.bold,
-                                                        fontFamily: 'Montserrat',
-
-                                                        color: Colors.white)),
-                                              )),
-                                        ],
-                                      ),
+                                                                // fontWeight:
+                                                                // FontWeight.bold,
+                                                                color: Colors
+                                                                    .white)),
+                                                      )),
+                                                ),
+                                              ],
+                                            )
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                FlatButton(
+                                                    color: Colors.grey,
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              12.0),
+                                                      child: AutoSizeText(
+                                                          'Back'.toUpperCase(),
+                                                          style: TextStyle(
+                                                              fontSize: _isLarge
+                                                                  ? 18
+                                                                  : 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Montserrat',
+                                                              color: Colors
+                                                                  .black)),
+                                                    )),
+                                                SizedBox(width: 5),
+                                                FlatButton(
+                                                    color: kSecondaryColor,
+                                                    onPressed: () {
+                                                      if (_fbKey.currentState
+                                                          .validate()) {
+                                                        updateProfile();
+                                                      }
+                                                    },
+                                                    child: Padding(
+                                                      padding:
+                                                          EdgeInsets.all(12.0),
+                                                      child: AutoSizeText(
+                                                          'Update My Profile'
+                                                              .toUpperCase(),
+                                                          style: TextStyle(
+                                                              fontSize: _isLarge
+                                                                  ? 18
+                                                                  : 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Montserrat',
+                                                              color: Colors
+                                                                  .white)),
+                                                    )),
+                                              ],
+                                            ),
                                     ],
                                   )),
                             ),
@@ -1275,14 +1315,24 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   String splitName(String name, flag) {
-    List<String> listName = name?.split(' ');
-    if(listName != null) {
+    List<String> listName = name?.split(', ');
+    //print("Listname :${listName[0]}");
+    //print("Listname :${listName[1]}");
+    //print("Listname :${listName}");
+    List<String> list1Name = listName[1]?.split(' ');
+    //print("List1Name :${list1Name}");
+
+    if (listName != null) {
       switch (flag) {
         case '1':
-          return listName[listName?.length - 1].replaceAll(',', '');
+          //print("Case1");
+          //print(listName[listName?.length - 2].replaceAll(',', ''));
+          return listName[0];
           break;
         case '2':
-          return listName[0].replaceAll(',', '');
+          //print("Case2");
+          //print(listName[0].replaceAll(',', ''));
+          return listName[1];
           break;
       }
     }
@@ -1290,37 +1340,30 @@ class _EditProfileState extends State<EditProfile> {
 
   removeFocus() {}
 
-  Future<bool> showAlert(List error,var message){
+  Future<bool> showAlert(List error, var message) {
     Alert(
         context: context,
         title: '',
         content: Container(
           child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment
-                  .center,
-              children: <
-                  Widget>[
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
                 Container(
-                  width: MediaQuery.of(context).size.width *0.2,
-                  height:MediaQuery.of(context).size.width *0.2,
-                  child: Image.asset(error.isEmpty?
-                  'images/success.png':'images/alert_icon.png'),
+                  width: MediaQuery.of(context).size.width * 0.2,
+                  height: MediaQuery.of(context).size.width * 0.2,
+                  child: Image.asset(error.isEmpty
+                      ? 'images/success.png'
+                      : 'images/alert_icon.png'),
                 ),
-                SizedBox(
-                    height:
-                    20),
+                SizedBox(height: 20),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     message,
                     style: TextStyle(
-                        color: Colors
-                            .black45,
-                        fontWeight: FontWeight
-                            .bold,
-                        fontSize:
-                        20),
+                        color: Colors.black45,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20),
                   ),
                 ),
               ]),
@@ -1329,57 +1372,33 @@ class _EditProfileState extends State<EditProfile> {
           DialogButton(
             child: Text(
               "Close",
-              style: TextStyle(
-                  color: Colors
-                      .white,
-                  fontSize: _isLarge
-                      ? 24
-                      : 18),
+              style:
+                  TextStyle(color: Colors.white, fontSize: _isLarge ? 24 : 18),
             ),
-            onPressed: (){
+            onPressed: () {
               Navigator.of(context).pop();
             },
-            color:
-            kPrimaryColor,
-            radius:
-            BorderRadius
-                .circular(
-                0.0),
+            color: kPrimaryColor,
+            radius: BorderRadius.circular(0.0),
           ),
         ],
         style: AlertStyle(
-          animationType:
-          AnimationType
-              .fromTop,
-          isCloseButton:
-          false,
-          isOverlayTapDismiss:
-          false,
+          animationType: AnimationType.fromTop,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
           titleStyle: TextStyle(
-              fontWeight:
-              FontWeight
-                  .bold,
-              fontSize:
-              _isLarge
-                  ? 24
-                  : 18),
+              fontWeight: FontWeight.bold, fontSize: _isLarge ? 24 : 18),
         )).show();
   }
 
   void updateProfile() {
-    var pr =
-    ProgressDialog(context);
-    if (_fbKey.currentState
-        .saveAndValidate()) {
-      print(_fbKey
-          .currentState.value);
+    var pr = ProgressDialog(context);
+    if (_fbKey.currentState.saveAndValidate()) {
+      print(_fbKey.currentState.value);
 
       pr.show();
-      Provider.of<ClientController>(
-          context,
-          listen: false)
-          .postClientBasic(widget.data,_fbKey
-          .currentState.value)
+      Provider.of<ClientController>(context, listen: false)
+          .postClientBasic(widget.data, _fbKey.currentState.value)
           .then((value) {
         pr.hide();
 
@@ -1389,11 +1408,10 @@ class _EditProfileState extends State<EditProfile> {
               value['message']),
         ));*/
         List error = value['error'];
-        showAlert(error,value['message']);
+        showAlert(error, value['message']);
       });
     } else {
-      print(_fbKey
-          .currentState.value);
+      print(_fbKey.currentState.value);
       print('validation failed');
       pr.hide();
     }

@@ -66,7 +66,7 @@ class ClientController with ChangeNotifier {
       headers: <String, String>{
         'Content-Type': 'text/xml',
         'Authorization':
-        'AuthFinWs token="${prefs.getString(PrefHelper.PREF_AUTH_TOKEN)}"'
+            'AuthFinWs token="${prefs.getString(PrefHelper.PREF_AUTH_TOKEN)}"'
       },
       body: envelope,
     );
@@ -75,9 +75,11 @@ class ClientController with ChangeNotifier {
     myTransformer.parse(response.body);
     var json = myTransformer.toParker();
     print(json);
-   var decodedJson = jsonDecode(json);
-     forcePassword=decodedJson['ClientAuthentication']['ForcePasswordChange'];
-    print('Force'+forcePassword.toString() +forcePassword.runtimeType.toString());
+    var decodedJson = jsonDecode(json);
+    forcePassword = decodedJson['ClientAuthentication']['ForcePasswordChange'];
+    print('Force' +
+        forcePassword.toString() +
+        forcePassword.runtimeType.toString());
     var innerJson = jsonDecode(json)['ClientAuthentication']['SessionDetails'];
     print(innerJson);
     // print(response.body);
@@ -100,15 +102,17 @@ class ClientController with ChangeNotifier {
       //prefs.setString(PrefHelper.PREF_PASSWORD, ePass);
       prefs.setString(PrefHelper.PREF_FULLNAME, innerJson['FullName']);
       await storage.write(key: PrefHelper.PREF_PASSWORD, value: ePass);
-     if(forcePassword=='true'){
-       prefs.setString(PrefHelper.PREF_FORCE_PASSWORD, forcePassword.toString());
+      if (forcePassword == 'true') {
+        prefs.setString(
+            PrefHelper.PREF_FORCE_PASSWORD, forcePassword.toString());
 
-       print('$forcePassword true');
-       prefs.getString(PrefHelper.PREF_FORCE_PASSWORD);
-       print('key '+       prefs.getString(PrefHelper.PREF_FORCE_PASSWORD).toString());
-     }
+        print('$forcePassword true');
+        prefs.getString(PrefHelper.PREF_FORCE_PASSWORD);
+        print('key ' +
+            prefs.getString(PrefHelper.PREF_FORCE_PASSWORD).toString());
+      }
       // prefs.setString('user', response.body);
-      client = Client.fromJson( jsonDecode(json)['ClientAuthentication']);
+      client = Client.fromJson(jsonDecode(json)['ClientAuthentication']);
 
       notifyListeners();
       return client;
@@ -122,7 +126,10 @@ class ClientController with ChangeNotifier {
 
   Future<ClientBasicModel> getClientBasic() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    print('$apiBaseURL/Client/GetClientBasic?clientId=${prefs.getString(PrefHelper.Pref_CLIENT_ID)}');
+    print(
+        '$apiBaseURL/Client/GetClientBasic?clientId=${prefs.getString(PrefHelper.Pref_CLIENT_ID)}');
+    print(
+        'AuthFinWs token="${prefs.getString(PrefHelper.PREF_SESSION_TOKEN)}"');
     http.Response response = await http.get(
         '$apiBaseURL/Client/GetClientBasic?clientId=${prefs.getString(PrefHelper.Pref_CLIENT_ID)}',
         headers: {
@@ -145,78 +152,86 @@ class ClientController with ChangeNotifier {
   }
 
   String splitName(String name, flag) {
-    try{
-      List<String> listName = name?.split(' ');
-      if(listName != null) {
-        switch (flag) {
-          case '1':
-            return listName[listName?.length - 1];
-            break;
-          case '2':
-            return listName[0];
-            break;
-        }
-      }
-    }catch(e){
-      print(e);
+    List<String> listName = name?.split(', ');
+    //print("Listname :${listName[0]}");
+    //print("Listname :${listName[1]}");
+    //print("Listname :${listName}");
+    //List<String> list1Name = listName[1]?.split(' ');
+    //print("List1Name :${list1Name}");
 
+    if (listName != null) {
+      switch (flag) {
+        case '1':
+          //print("Case1");
+          //print(listName[listName?.length - 2].replaceAll(',', ''));
+          return listName[0];
+          break;
+        case '2':
+          //print("Case2");
+          //print(listName[0].replaceAll(',', ''));
+          return listName[1];
+          break;
+      }
     }
   }
 
-  Future<Map> postClientBasic(ClientBasicModel oldData,Map<String, dynamic> data) async {
+  Future<Map> postClientBasic(
+      ClientBasicModel oldData, Map<String, dynamic> data) async {
     // SharedPreferences prefs = await SharedPreferences.getInstance();
-    print('inputFormBody' +
-        json.encode(
-          {
-            "old_fName":  splitName(oldData?.name, '1'),
-            "old_lName":splitName(oldData?.name, '2'),
-            "old_ContactMethodEmail": oldData.contactMethodEmail,
-            "old_ContactMethodMobile": oldData.contactMethodMobile,
-            "old_ContactMethodPhoneHome": oldData.contactMethodPhoneHome,
-            "old_ContactMethodPhoneWork": oldData.contactMethodPhoneWork,
-            "old_StreetAddressFull": oldData?.addressPhysical?.streetAddressFull,
-            "old_Suburb": oldData?.addressPhysical?.suburb,
-            "old_Postcode": oldData?.addressPhysical?.postcode,
-            "fName": data["first_name"],
-            "lName": data["last_name"],
-            "ContactMethodEmail": data["email"],
-            "ContactMethodMobile": data["mobile_no"],
-            "ContactMethodPhoneHome": data["home_phone_no"],
-            "ContactMethodPhoneWork": data["work_phone_no"],
-            "StreetAddressFull": data["street_address"],
-            "Suburb": data["suburb"],
-            "Postcode": data["post_code"]
-          },
-        ));
-    String fName = splitName(oldData?.name, '1');
-    String lName = splitName(oldData?.name, '2');
+    // print('inputFormBody' +
+    //     json.encode(
+    //       {
+    //         "old_fName": splitName(oldData?.name, '1'),
+    //         "old_lName": splitName(oldData?.name, '2'),
+    //         "old_ContactMethodEmail": oldData.contactMethodEmail,
+    //         "old_ContactMethodMobile": oldData.contactMethodMobile,
+    //         "old_ContactMethodPhoneHome": oldData.contactMethodPhoneHome,
+    //         "old_ContactMethodPhoneWork": oldData.contactMethodPhoneWork,
+    //         "old_StreetAddressFull":
+    //             oldData?.addressPhysical?.streetAddressFull,
+    //         "old_Suburb": oldData?.addressPhysical?.suburb,
+    //         "old_Postcode": oldData?.addressPhysical?.postcode,
+    //         "fName": data["first_name"],
+    //         "lName": data["last_name"],
+    //         "ContactMethodEmail": data["email"],
+    //         "ContactMethodMobile": data["mobile_no"],
+    //         "ContactMethodPhoneHome": data["home_phone_no"],
+    //         "ContactMethodPhoneWork": data["work_phone_no"],
+    //         "StreetAddressFull": data["street_address"],
+    //         "Suburb": data["suburb"],
+    //         "Postcode": data["post_code"]
+    //       },
+    //     ));
+    String fName = splitName(oldData?.name, '2');
+    String lName = splitName(oldData?.name, '1');
+    print("Fname: $fName");
+    print("Lname: $lName");
+    print("Lname: ${data['last_name']}");
     Map<String, dynamic> bodyMap = {
       "old_fName": fName,
-      "old_lName":lName,
-      "old_ContactMethodEmail": oldData.contactMethodEmail??='',
-      "old_ContactMethodMobile": oldData.contactMethodMobile??='',
-      "old_ContactMethodPhoneHome": oldData.contactMethodPhoneHome??='',
-      "old_ContactMethodPhoneWork": oldData.contactMethodPhoneWork??='',
-      "old_StreetAddressFull": oldData?.addressPhysical?.streetAddressFull??='',
-      "old_Suburb": oldData?.addressPhysical?.suburb??='',
-      "old_Postcode": oldData?.addressPhysical?.postcode??='',
-      "fName": data["first_name"]??='',
-      "lName": data["last_name"]??='',
-      "ContactMethodEmail": data["email"]??='',
-      "ContactMethodMobile": data["mobile_no"]??='',
-      "ContactMethodPhoneHome": data["home_phone_no"]??='',
-      "ContactMethodPhoneWork": data["work_phone_no"]??='',
-      "StreetAddressFull": data["street_address"]??='',
-      "Suburb": data["suburb"]??='',
-      "Postcode": data["post_code"]??=''
+      "old_lName": lName,
+      "old_ContactMethodEmail": oldData.contactMethodEmail ?? '',
+      "old_ContactMethodMobile": oldData.contactMethodMobile ?? '',
+      "old_ContactMethodPhoneHome": oldData.contactMethodPhoneHome ?? '',
+      "old_ContactMethodPhoneWork": oldData.contactMethodPhoneWork ?? '',
+      "old_StreetAddressFull":
+          oldData?.addressPhysical?.streetAddressFull ?? '',
+      "old_Suburb": oldData?.addressPhysical?.suburb ?? '',
+      "old_Postcode": oldData?.addressPhysical?.postcode ?? '',
+      "fName": data["first_name"] ?? '',
+      "lName": data["last_name"] ?? '',
+      "ContactMethodEmail": data["email"] ?? '',
+      "ContactMethodMobile": data["mobile_no"] ?? '',
+      "ContactMethodPhoneHome": data["home_phone_no"] ?? '',
+      "ContactMethodPhoneWork": data["work_phone_no"] ?? '',
+      "StreetAddressFull": data["street_address"] ?? '',
+      "Suburb": data["suburb"] ?? '',
+      "Postcode": data["post_code"] ?? ''
     };
 
-    print(jsonEncode(bodyMap));
-
-
-
-
-    try{
+    //print(jsonEncode(bodyMap));
+    print('https://www.goodtogoloans.com.au/crons/mobile_app_email.php');
+    try {
       /*var request = http.Request('POST', Uri.parse('https://www.goodtogoloans.com.au/crons/mobile_app_email.php'));
       request.bodyFields = bodyMap;
 
@@ -239,11 +254,9 @@ class ClientController with ChangeNotifier {
 
       print(response.body);
       return jsonDecode(response.body);
-    }
-    catch(e){
+    } catch (e) {
       print(e);
     }
-
   }
 
   Future<void> fetchClientDetailsSP() async {
@@ -259,6 +272,7 @@ class ClientController with ChangeNotifier {
   String get getClientName {
     return clientName;
   }
+
   String get getClientId {
     return clientId;
   }
