@@ -61,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen>
     await Future.delayed(Duration(milliseconds: 1000));
     // if failed,use loadFailed(),if no data return,use LoadNodata()
     accounts = accProvider.getAccountsList();
+
     if (mounted) setState(() {});
     _refreshController.loadComplete();
   }
@@ -68,30 +69,68 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void afterFirstLayout(BuildContext context) {
     int flag = ModalRoute.of(context).settings.arguments;
-    print('navFlag' + flag.toString());
-    if (flag == 1) _showDialog();
+    //print('navFlag' + flag.toString());
+    if (flag == 1) {
+      bool qoute = isQoute();
+
+      if (qoute) {
+        _showDialog();
+      }
+    }
   }
 
+  List<String> overdueaccount = [];
   bool isOverdue() {
+    overdueaccount.clear();
     try {
-      for (Account account in accounts) {
-        print("Balance OverDue" + account.balanceOverdue.toString());
-        if (account.status == "Open" && (account.balanceOverdue) > 0.0) {
-          return true;
+      for (int i = 0; i < accounts.length; i++) {
+        if (accounts[i].status == "Open" &&
+            (accounts[i].balanceOverdue) > 0.0) {
+          overdueaccount.add('true');
+        } else {
+          overdueaccount.add('false');
         }
       }
-      return false;
+      return overdueaccount.contains('true') ? true : false;
     } catch (error) {
       print(error.toString());
+      return false;
     }
-    return false;
   }
 
+  List<String> closedaccount = [];
   bool isElligible() {
-    for (Account account in accounts) {
-      if (account.status == "Closed") return true;
+    closedaccount.clear();
+    //print("LegthL:::${accounts.length}");
+    //print(closedaccount);
+    for (int i = 0; i < accounts.length; i++) {
+      if (accounts[i].status == "Closed") {
+        closedaccount.add('true');
+      } else {
+        closedaccount.add('false');
+      }
     }
-    return false;
+    print(closedaccount);
+
+    return closedaccount.contains('false') ? false : true;
+  }
+
+  List<String> qouteaccount = [];
+  bool isQoute() {
+    qouteaccount.clear();
+    //print("LegthL:::${accounts.length}");
+    //print(closedaccount);
+    for (int i = 0; i < accounts.length; i++) {
+      if (accounts[i].status == "Quote" || accounts[i].status == "Closed") {
+        qouteaccount.add('true');
+      } else {
+        print(accounts[i].status);
+        qouteaccount.add('false');
+      }
+    }
+    print(qouteaccount);
+
+    return qouteaccount.contains('false') ? true : false;
   }
 
   payURL(Account account) async {
@@ -101,20 +140,20 @@ class _HomeScreenState extends State<HomeScreen>
 
     var name = account.name;
     List fname = name.split(',');
-    print('fname' + fname[1]);
+    //print('fname' + fname[1]);
 
     try {
       String url =
           'https://www.goodtogoloans.com.au/payments/?fname=${fname[1].toString().trim()}&lname=${fname[0]}&email=${prefs.getString(PrefHelper.PREF_EMAIL_ID)}&account_id=${account.accountId}&client_id=${prefs.getString(PrefHelper.Pref_CLIENT_ID)}'
               .replaceAll(' ', '%20');
-      print(url);
-   //   await launch(url);
-     await _launchInWebViewWithJavaScript(url);
-
+      //print(url);
+      //   await launch(url);
+      await _launchInWebViewWithJavaScript(url);
     } on Exception catch (e) {
       print(e.toString());
     }
   }
+
   Future<void> _launchInWebViewWithJavaScript(String url) async {
     if (await canLaunch(url)) {
       await launch(
@@ -129,14 +168,20 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showDialog() {
+    bool elligible = isElligible();
+    print("Elligible:" + elligible.toString());
+    bool overdue = isOverdue();
+    print("Overdue:" + overdue.toString());
     Alert(
             context: context,
             title: '',
             buttons: [
               DialogButton(
-                color: isOverdue()
+                color: overdue
                     ? Colors.red[600]
-                    : (isElligible() ? Colors.green : Colors.amberAccent),
+                    : elligible
+                        ? Colors.green
+                        : Colors.amberAccent,
                 child: Text(
                   "CLOSE",
                   style: TextStyle(
@@ -150,18 +195,18 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 children: [
                   Text(
-                      '${isOverdue() ? 'Hi' : (isElligible() ? 'Welcome' : 'Well Done')}' +
+                      '${overdue ? 'Hi' : (elligible) ? 'Welcome' : 'Well Done'}' +
                           ', ${client.sessionDetails.fullName.split(' ')[0]}',
                       style: TextStyle(
                           fontSize: _isLarge ? 28 : 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.black)),
                   Text(
-                      isOverdue()
+                      overdue
                           ? 'Your Account is Overdue'
-                          : (isElligible()
+                          : elligible
                               ? 'You\'re eligible to reapply'
-                              : 'You\'re on Track'),
+                              : 'You\'re on Track',
                       style: TextStyle(
                           fontSize: _isLarge ? 24 : 18,
                           // fontWeight: FontWeight.bold,
@@ -170,11 +215,11 @@ class _HomeScreenState extends State<HomeScreen>
                     height: _isLarge ? 12 : 8,
                   ),
                   Image.asset(
-                    isOverdue()
+                    overdue
                         ? 'images/overdue.png'
-                        : (isElligible()
+                        : elligible
                             ? 'images/reapply.png'
-                            : 'images/ontrack.png'),
+                            : 'images/ontrack.png',
                   ),
                 ],
               ),
@@ -199,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen>
             },
             title: '',
             buttons: [
-             /* DialogButton(
+              /* DialogButton(
                 color: Colors.green,
                 child: Text(
                   "Apply Now",
@@ -247,6 +292,9 @@ class _HomeScreenState extends State<HomeScreen>
 
     client = clientProvider.getClient();
     accounts = accProvider.getAccountsList();
+    for (int i = 0; i < accounts.length; i++) {
+      print("Status $i :::${accounts[i].status}");
+    }
 
     return Scaffold(
       key: _homeScreenScaffold,
@@ -264,7 +312,8 @@ class _HomeScreenState extends State<HomeScreen>
               //     MaterialPageRoute(
               //         builder: (context) => ApplyNowScreen()),
               //         (r) => r.isFirst);
-              _launchInWebViewWithJavaScript('https://www.goodtogoloans.com.au/');
+              _launchInWebViewWithJavaScript(
+                  'https://www.goodtogoloans.com.au/');
               break; // Create this function, it should return your second page as a widget
             case 2:
               Navigator.pushAndRemoveUntil(
@@ -465,44 +514,87 @@ class _HomeScreenState extends State<HomeScreen>
               bottom: 0.0,
               right: 0.0,
               //here the body
-              child:accounts.length>0? PageView.builder(
-                controller: pageViewController,
-                physics: BouncingScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Padding(
-                        padding:EdgeInsets.all(4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+              child: accounts.length > 0
+                  ? PageView.builder(
+                      controller: pageViewController,
+                      physics: BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return Column(
                           children: [
-                           index>0? FlatButton.icon(
-                             onPressed:(){
-                               pageViewController.jumpToPage(pageViewController.page.toInt()-1);
-                             },
-                             icon: Icon(Icons.keyboard_arrow_left,size: 40,color: Colors.black,),label: AutoSizeText('Previous Loan',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 16),),):Container(),
-                            index<accounts.length -1?FlatButton.icon(
-                              onPressed:(){
-                                pageViewController.jumpToPage(pageViewController.page.toInt()+1);
-                              },
-                                icon: AutoSizeText('Next Loan',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize:16)),label: Icon(Icons.keyboard_arrow_right,size: 40,color: Colors.black,)):Container()
+                            Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  index > 0
+                                      ? FlatButton.icon(
+                                          onPressed: () {
+                                            pageViewController.jumpToPage(
+                                                pageViewController.page
+                                                        .toInt() -
+                                                    1);
+                                          },
+                                          icon: Icon(
+                                            Icons.keyboard_arrow_left,
+                                            size: 40,
+                                            color: Colors.black,
+                                          ),
+                                          label: AutoSizeText(
+                                            'Previous Loan',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16),
+                                          ),
+                                        )
+                                      : Container(),
+                                  index < accounts.length - 1
+                                      ? FlatButton.icon(
+                                          onPressed: () {
+                                            pageViewController.jumpToPage(
+                                                pageViewController.page
+                                                        .toInt() +
+                                                    1);
+                                          },
+                                          icon: AutoSizeText('Next Loan',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16)),
+                                          label: Icon(
+                                            Icons.keyboard_arrow_right,
+                                            size: 40,
+                                            color: Colors.black,
+                                          ))
+                                      : Container()
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                                child: buildPage(context, accounts[index])),
                           ],
-                        ),
-                      ),
-                      Expanded(child: buildPage(context, accounts[index])),
-                    ],
-                  );
-                },
-                itemCount: accounts.length,
-              ):Center(child:Container(
-
-                  margin: const EdgeInsets.all(15.0),
-                  padding: const EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                      color: Colors.white, borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: Theme.of(context).accentColor,width: 2)
-    ),child:Text('No Loan Accounts or\n Quotes found',textAlign: TextAlign.center,style:TextStyle(fontSize: 24,fontWeight: FontWeight.bold,color: Theme.of(context).accentColor)))),
+                        );
+                      },
+                      itemCount: accounts.length,
+                    )
+                  : Center(
+                      child: Container(
+                          margin: const EdgeInsets.all(15.0),
+                          padding: const EdgeInsets.all(20.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: Theme.of(context).accentColor,
+                                  width: 2)),
+                          child: Text('No Loan Accounts or\n Quotes found',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).accentColor)))),
             ),
           ],
         ),
@@ -654,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen>
     _width = MediaQuery.of(context).size.width;
     _isLarge = ResponsiveWidget.isScreenLarge(_width, _pixelRatio);
 
-   return SingleChildScrollView(
+    return SingleChildScrollView(
       padding: _isLarge ? EdgeInsets.all(20) : EdgeInsets.all(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -675,8 +767,7 @@ class _HomeScreenState extends State<HomeScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 InkWell(
                                   onTap: () {
@@ -684,8 +775,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                TransactionsScreen(
-                                                    account)));
+                                                TransactionsScreen(account)));
                                   },
                                   child: AutoSizeText(
                                     account.accountId,
@@ -703,30 +793,28 @@ class _HomeScreenState extends State<HomeScreen>
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                TransactionsScreen(
-                                                    account)));
+                                                TransactionsScreen(account)));
                                   },
                                   child: Card(
                                       shape: RoundedRectangleBorder(
                                           borderRadius:
-                                          BorderRadius.circular(20.0)),
-                                      color: account.status.toUpperCase() ==
-                                          'OPEN'
-                                          ? isOverdue()
-                                          ? Colors.red
-                                          : kPrimaryColor
-                                          : (account.status.toUpperCase() ==
-                                          'QUOTE'
-                                          ? Colors.amber[300]
-                                          : Colors.grey),
+                                              BorderRadius.circular(20.0)),
+                                      color:
+                                          account.status.toUpperCase() == 'OPEN'
+                                              ? isOverdue()
+                                                  ? Colors.red
+                                                  : kPrimaryColor
+                                              : (account.status.toUpperCase() ==
+                                                      'QUOTE'
+                                                  ? Colors.amber[300]
+                                                  : Colors.grey),
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(
                                             vertical: 8.0, horizontal: 15),
                                         child: AutoSizeText(
                                             account.status.toUpperCase(),
                                             style: TextStyle(
-                                                fontSize:
-                                                _isLarge ? 16 : 12,
+                                                fontSize: _isLarge ? 16 : 12,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.white)),
                                       )),
@@ -750,359 +838,348 @@ class _HomeScreenState extends State<HomeScreen>
                   ]),
                   !_isLarge
                       ? Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      children: [
-                        Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                AutoSizeText(
-                                  'Overdue',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black45),
-                                  textAlign: TextAlign.start,
-                                ),
-                                Row(
-                                  children: [
-                                    AutoSizeText(
-                                      '${accProvider.formatCurrency(account.balanceOverdue ??= 0.00)}',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: account
-                                              .balanceOverdue !=
-                                              null
-                                              ? (account.balanceOverdue >
-                                              0
-                                              ? Colors.red
-                                              : kPrimaryColor)
-                                              : kSecondaryColor),
-                                      textAlign: TextAlign.start,
-                                    ),
-                                    IconButton(
-                                        icon: Icon(
-                                          Icons.info_outline,
-                                          color: account
-                                              .balanceOverdue !=
-                                              null
-                                              ? (account.balanceOverdue >
-                                              0
-                                              ? Colors.red
-                                              : kPrimaryColor)
-                                              : kSecondaryColor,
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      TransactionsScreen(
-                                                          account)));
-
-                                        }),
-                                  ],
-                                ),
-                              ],
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                            ),
-                            Divider(
-                              color: Colors.black54,
-                            ),
-                            Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              children: [
-                                AutoSizeText(
-                                  'Balance',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black45),
-                                  textAlign: TextAlign.start,
-                                ),
-                                Row(
-                                  children: [
-                                    AutoSizeText(
-                                      '${accProvider.formatCurrency(account?.balance)}',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black),
-                                      textAlign: TextAlign.start,
-                                    ),
-                                    IconButton(
-                                        icon: Icon(null),
-                                        onPressed: () {}),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            account.balance <= 0
-                                ? Container()
-                                : Container(
-                              alignment: Alignment.centerLeft,
-                              child: InkWell(
-                                onTap: () {
-                                  _showMakePaymentDialog();
-                                },
-                                child: Row(
-                                  children: [
-                                    AutoSizeText(
-                                        'How to make a payment? ',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight:
-                                            FontWeight.bold,
-                                            color:
-                                            kSecondaryColor)),
-                                    // InkWell(
-                                      // onTap: (){
-                                      //   Navigator.push(
-                                      //       context,
-                                      //       MaterialPageRoute(
-                                      //           builder: (context) =>
-                                      //               TransactionsScreen(
-                                      //                   account)));
-                                      // },
-                                      // child:
-                                            Icon(
-                                        Icons.info_outlined,
-                                        color: kSecondaryColor,
-                                      ),
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            account.balance <= 0
-                                ? Container()
-                                : FlatButton(
-                              color: kPrimaryColor,
-                              onPressed: () {
-                                payURL(account);
-                              },
-                              child: AutoSizeText(
-                                'Make Additional Payment'
-                                /*+
-                                              '${accProvider.formatCurrency(account?.balance)}'*/
-                                ,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  fontFamily: 'Montserrat',
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  )
-                      : Row(
-                    children: [
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                          flex: 5,
+                          padding: const EdgeInsets.all(10.0),
                           child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.stretch,
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceAround,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
                                     children: [
                                       AutoSizeText(
                                         'Overdue',
                                         style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.black87,fontFamily: 'Montserrat',),
+                                            fontSize: 16,
+                                            color: Colors.black45),
                                         textAlign: TextAlign.start,
                                       ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      AutoSizeText(
-                                        '${accProvider.formatCurrency(account.balanceOverdue ??= 0.00)}',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                            color: kSecondaryColor),
-                                        textAlign: TextAlign.start,
+                                      Row(
+                                        children: [
+                                          AutoSizeText(
+                                            '${accProvider.formatCurrency(account.balanceOverdue ??= 0.00)}',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: account.balanceOverdue !=
+                                                        null
+                                                    ? (account.balanceOverdue >
+                                                            0
+                                                        ? Colors.red
+                                                        : kPrimaryColor)
+                                                    : kSecondaryColor),
+                                            textAlign: TextAlign.start,
+                                          ),
+                                          IconButton(
+                                              icon: Icon(
+                                                Icons.info_outline,
+                                                color: account.balanceOverdue !=
+                                                        null
+                                                    ? (account.balanceOverdue >
+                                                            0
+                                                        ? Colors.red
+                                                        : kPrimaryColor)
+                                                    : kSecondaryColor,
+                                              ),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            TransactionsScreen(
+                                                                account)));
+                                              }),
+                                        ],
                                       ),
-                                      IconButton(
-                                          icon: Icon(
-                                              Icons.info_outline,
-                                              color: account
-                                                  .balanceOverdue !=
-                                                  null
-                                                  ? (account.balanceOverdue >
-                                                  0
-                                                  ? Colors.red
-                                                  : kPrimaryColor)
-                                                  : kSecondaryColor,
-                                              size: 30),
-                                          onPressed: () {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        TransactionsScreen(
-                                                            account)));
-                                          }),
                                     ],
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                   ),
-                                ],
-                              ),
-                              Divider(
-                                color: Colors.grey[400],
-                              ),
-
-                              Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                children: [
+                                  Divider(
+                                    color: Colors.black54,
+                                  ),
                                   Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       AutoSizeText(
                                         'Balance',
                                         style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.black87,fontFamily: 'Montserrat',),
+                                            fontSize: 16,
+                                            color: Colors.black45),
                                         textAlign: TextAlign.start,
+                                      ),
+                                      Row(
+                                        children: [
+                                          AutoSizeText(
+                                            '${accProvider.formatCurrency(account?.balance)}',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black),
+                                            textAlign: TextAlign.start,
+                                          ),
+                                          IconButton(
+                                              icon: Icon(null),
+                                              onPressed: () {}),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                  Row(
-                                    children: [
-                                      AutoSizeText(
-                                        '${accProvider.formatCurrency(account?.balance)}',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                            color: Colors.black),
-                                        textAlign: TextAlign.start,
-                                      ),
-                                      IconButton(
-                                          icon: Icon(
-                                             null,
-                                              size: 30),
-                                          onPressed: () {}),
-                                    ],
-                                  )
-                                ],
-                              ),
-
-                              Divider(
-                                color: Colors.grey[400],
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              account.balance <= 0
-                                  ? Container()
-                                  : Container(
-                                alignment: Alignment.centerLeft,
-                                child: InkWell(
-                                  onTap: () {
-                                    _showMakePaymentDialog();
-                                  },
-                                  child: Row(
-                                    children: [
-                                      AutoSizeText(
-                                          'How to make a payment? ',
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight:
-                                              FontWeight
-                                                  .w700,
-                                              fontFamily:
-                                              'Montserrat',
-                                              color:
-                                              kSecondaryColor)),
-
-
-                                        Icon(
-                                          Icons.info_outlined,
-                                          size:
-                                          _isLarge ? 30 : 16,
-                                          color: kSecondaryColor,
+                                  SizedBox(height: 10),
+                                  account.balance <= 0
+                                      ? Container()
+                                      : Container(
+                                          alignment: Alignment.centerLeft,
+                                          child: InkWell(
+                                            onTap: () {
+                                              _showMakePaymentDialog();
+                                            },
+                                            child: Row(
+                                              children: [
+                                                AutoSizeText(
+                                                    'How to make a payment? ',
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            kSecondaryColor)),
+                                                // InkWell(
+                                                // onTap: (){
+                                                //   Navigator.push(
+                                                //       context,
+                                                //       MaterialPageRoute(
+                                                //           builder: (context) =>
+                                                //               TransactionsScreen(
+                                                //                   account)));
+                                                // },
+                                                // child:
+                                                Icon(
+                                                  Icons.info_outlined,
+                                                  color: kSecondaryColor,
+                                                ),
+                                                // ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-
-                                    ],
+                                  SizedBox(
+                                    height: 10,
                                   ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-
-                              // FlatButton(
-                              //   onPressed: () {},
-                              //   color: kSecondaryColor,
-                              //   child: Padding(
-                              //     padding: EdgeInsets.all(8.0),
-                              //     child: AutoSizeText('How to make a payment?',
-                              //         style: TextStyle(
-                              //             fontSize: _isLarge ? 25 : 20,
-                              //             fontWeight: FontWeight.w600,
-                              //             color: Colors.white)),
-                              //   ),
-                              // ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              account.balance <= 0
-                                  ? Container()
-                                  : FlatButton(
-                                color: kPrimaryColor,
-                                onPressed: () {
-                                  payURL(account);
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(15),
-                                  child: AutoSizeText(
-                                    'Make Additional Payment'
-                                    /* +
-                                                  '${accProvider.formatCurrency(account.balance)}'*/
-                                    ,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight:
-                                      FontWeight.w700,
-                                      fontSize: 20,
-                                      fontFamily: 'Montserrat',
-                                    ),
-                                  ),
-                                ),
-                              ),
+                                  account.balance <= 0
+                                      ? Container()
+                                      : FlatButton(
+                                          color: kPrimaryColor,
+                                          onPressed: () {
+                                            payURL(account);
+                                          },
+                                          child: AutoSizeText(
+                                            'Make Additional Payment'
+                                            /*+
+                                              '${accProvider.formatCurrency(account?.balance)}'*/
+                                            ,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                              fontFamily: 'Montserrat',
+                                            ),
+                                          ),
+                                        ),
+                                ],
+                              )
                             ],
-                          ))
-                    ],
-                  )
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                                flex: 5,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            AutoSizeText(
+                                              'Overdue',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black87,
+                                                fontFamily: 'Montserrat',
+                                              ),
+                                              textAlign: TextAlign.start,
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            AutoSizeText(
+                                              '${accProvider.formatCurrency(account.balanceOverdue ??= 0.00)}',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: kSecondaryColor),
+                                              textAlign: TextAlign.start,
+                                            ),
+                                            IconButton(
+                                                icon: Icon(Icons.info_outline,
+                                                    color: account
+                                                                .balanceOverdue !=
+                                                            null
+                                                        ? (account.balanceOverdue >
+                                                                0
+                                                            ? Colors.red
+                                                            : kPrimaryColor)
+                                                        : kSecondaryColor,
+                                                    size: 30),
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              TransactionsScreen(
+                                                                  account)));
+                                                }),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    Divider(
+                                      color: Colors.grey[400],
+                                    ),
+
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            AutoSizeText(
+                                              'Balance',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black87,
+                                                fontFamily: 'Montserrat',
+                                              ),
+                                              textAlign: TextAlign.start,
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            AutoSizeText(
+                                              '${accProvider.formatCurrency(account?.balance)}',
+                                              style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black),
+                                              textAlign: TextAlign.start,
+                                            ),
+                                            IconButton(
+                                                icon: Icon(null, size: 30),
+                                                onPressed: () {}),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+
+                                    Divider(
+                                      color: Colors.grey[400],
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    account.balance <= 0
+                                        ? Container()
+                                        : Container(
+                                            alignment: Alignment.centerLeft,
+                                            child: InkWell(
+                                              onTap: () {
+                                                _showMakePaymentDialog();
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  AutoSizeText(
+                                                      'How to make a payment? ',
+                                                      style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontFamily:
+                                                              'Montserrat',
+                                                          color:
+                                                              kSecondaryColor)),
+                                                  Icon(
+                                                    Icons.info_outlined,
+                                                    size: _isLarge ? 30 : 16,
+                                                    color: kSecondaryColor,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+
+                                    // FlatButton(
+                                    //   onPressed: () {},
+                                    //   color: kSecondaryColor,
+                                    //   child: Padding(
+                                    //     padding: EdgeInsets.all(8.0),
+                                    //     child: AutoSizeText('How to make a payment?',
+                                    //         style: TextStyle(
+                                    //             fontSize: _isLarge ? 25 : 20,
+                                    //             fontWeight: FontWeight.w600,
+                                    //             color: Colors.white)),
+                                    //   ),
+                                    // ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    account.balance <= 0
+                                        ? Container()
+                                        : FlatButton(
+                                            color: kPrimaryColor,
+                                            onPressed: () {
+                                              payURL(account);
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.all(15),
+                                              child: AutoSizeText(
+                                                'Make Additional Payment'
+                                                /* +
+                                                  '${accProvider.formatCurrency(account.balance)}'*/
+                                                ,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 20,
+                                                  fontFamily: 'Montserrat',
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                  ],
+                                ))
+                          ],
+                        )
                 ]),
               ),
             ),
@@ -1197,83 +1274,144 @@ class _HomeScreenState extends State<HomeScreen>
                           accentColor: Colors.black),
                       child: _isLarge
                           ? ExpansionTile(
-                        leading: ImageIcon(
-                            AssetImage('images/loan.png'),
-                            size: _isLarge ? 30 : 24,
-                            color: kSecondaryColor),
-                        initiallyExpanded: true,
-                        title: Padding(
-                          padding:
-                          EdgeInsets.symmetric(vertical: 8.0),
-                          child: AutoSizeText(
-                            'Loan Details',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Montserrat',
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        children: [
-                          Padding(
-                            padding:
-                            EdgeInsets.all(_isLarge ? 20 : 10.0),
-                            child: Column(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              leading: ImageIcon(AssetImage('images/loan.png'),
+                                  size: _isLarge ? 30 : 24,
+                                  color: kSecondaryColor),
+                              initiallyExpanded: true,
+                              title: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                child: AutoSizeText(
+                                  'Loan Details',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'Montserrat',
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(_isLarge ? 20 : 10.0),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.all(8),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Column(
+                                              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                buildLoanDetail('Account ID',
+                                                    account.accountId),
+                                                SizedBox(
+                                                    height: _isLarge ? 30 : 15),
+                                                buildLoanDetail(
+                                                    'Maturity Date',
+                                                    DateFormat('dd-MM-yy')
+                                                        .format(DateTime.parse(
+                                                            account
+                                                                .dateMaturity))),
+                                              ],
+                                            ),
+                                            Column(
+                                              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                buildLoanDetail(
+                                                    'Open Date',
+                                                    DateFormat('dd-MM-yy')
+                                                        .format(DateTime.parse(
+                                                            account
+                                                                .dateOpened))),
+                                                SizedBox(
+                                                    height: _isLarge ? 30 : 15),
+                                                buildLoanDetail(
+                                                    'Loan Amount',
+                                                    accProvider.formatCurrency(
+                                                        account
+                                                            ?.balanceOpening))
+                                                //SizedBox(height: _isLarge ? 30 : 15),
+                                                // buildLoanDetail('Payments Remaining', '20'),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            )
+                          : ExpansionTile(
+                              leading: ImageIcon(AssetImage('images/loan.png'),
+                                  size: _isLarge ? 30 : 24,
+                                  color: kSecondaryColor),
+                              initiallyExpanded: true,
+                              title: AutoSizeText(
+                                'Loan Details'
+                                '',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
                               children: [
                                 Padding(
                                   padding: EdgeInsets.all(8),
                                   child: Row(
                                     mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Column(
                                         // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           buildLoanDetail(
-                                              'Account ID',
-                                              account.accountId),
-                                          SizedBox(
-                                              height:
-                                              _isLarge ? 30 : 15),
+                                              'Account ID', account.accountId),
+                                          SizedBox(height: _isLarge ? 30 : 15),
                                           buildLoanDetail(
                                               'Maturity Date',
-                                              DateFormat('dd-MM-yy')
-                                                  .format(DateTime
-                                                  .parse(account
-                                                  .dateMaturity))),
+                                              DateFormat('dd-MM-yy').format(
+                                                  DateTime.parse(
+                                                      account.dateMaturity))),
                                         ],
                                       ),
                                       Column(
                                         // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         mainAxisAlignment:
-                                        MainAxisAlignment.start,
+                                            MainAxisAlignment.start,
                                         children: [
                                           buildLoanDetail(
                                               'Open Date',
-                                              DateFormat('dd-MM-yy')
-                                                  .format(DateTime
-                                                  .parse(account
-                                                  .dateOpened))),
-                                          SizedBox(
-                                              height:
-                                              _isLarge ? 30 : 15),
+                                              DateFormat('dd-MM-yy').format(
+                                                  DateTime.parse(
+                                                      account.dateOpened))),
+                                          SizedBox(height: _isLarge ? 30 : 15),
                                           buildLoanDetail(
                                               'Loan Amount',
                                               accProvider.formatCurrency(
-                                                  account
-                                                      ?.balanceOpening))
+                                                  account?.balanceOpening))
                                           //SizedBox(height: _isLarge ? 30 : 15),
                                           // buildLoanDetail('Payments Remaining', '20'),
                                         ],
@@ -1283,77 +1421,6 @@ class _HomeScreenState extends State<HomeScreen>
                                 )
                               ],
                             ),
-                          )
-                        ],
-                      )
-                          : ExpansionTile(
-                        leading: ImageIcon(
-                            AssetImage('images/loan.png'),
-                            size: _isLarge ? 30 : 24,
-                            color: kSecondaryColor),
-                        initiallyExpanded: true,
-                        title: AutoSizeText(
-                          'Loan Details'
-                              '',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Montserrat',
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Column(
-                                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    buildLoanDetail('Account ID',
-                                        account.accountId),
-                                    SizedBox(
-                                        height: _isLarge ? 30 : 15),
-                                    buildLoanDetail(
-                                        'Maturity Date',
-                                        DateFormat('dd-MM-yy').format(
-                                            DateTime.parse(account
-                                                .dateMaturity))),
-                                  ],
-                                ),
-                                Column(
-                                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.start,
-                                  children: [
-                                    buildLoanDetail(
-                                        'Open Date',
-                                        DateFormat('dd-MM-yy').format(
-                                            DateTime.parse(
-                                                account.dateOpened))),
-                                    SizedBox(
-                                        height: _isLarge ? 30 : 15),
-                                    buildLoanDetail(
-                                        'Loan Amount',
-                                        accProvider.formatCurrency(
-                                            account?.balanceOpening))
-                                    //SizedBox(height: _isLarge ? 30 : 15),
-                                    // buildLoanDetail('Payments Remaining', '20'),
-                                  ],
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
                     ),
                   ),
                 ),
@@ -1385,10 +1452,8 @@ class _HomeScreenState extends State<HomeScreen>
                           Icons.keyboard_arrow_right,
                           size: _isLarge ? 32 : 24,
                         ),
-                        leading: ImageIcon(
-                            AssetImage('images/documents.png'),
-                            size: _isLarge ? 30 : 24,
-                            color: kSecondaryColor),
+                        leading: ImageIcon(AssetImage('images/documents.png'),
+                            size: _isLarge ? 30 : 24, color: kSecondaryColor),
                         title: AutoSizeText('Loan Documents',
                             style: TextStyle(
                               fontSize: 20,
@@ -1416,7 +1481,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: ListTile(
                       onTap: () async {
-                        print(account.balance.toString());
+                        // print(account.balance.toString());
                         Navigator.push(
                             context,
                             MaterialPageRoute(

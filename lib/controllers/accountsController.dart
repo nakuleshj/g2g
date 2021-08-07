@@ -25,26 +25,22 @@ class AccountsController with ChangeNotifier {
           'Authorization':
               'AuthFinWs token="${prefs.getString(PrefHelper.PREF_AUTH_TOKEN)}"'
         });
-    print(clientID);
-    print('$apiBaseURL/Client/GetAccounts?clientId=$clientID&includeQuote=true&includeOpen=true&includeClosed=true');
-    print(response.body);
+    //print(clientID);
+    //print('$apiBaseURL/Client/GetAccounts?clientId=$clientID&includeQuote=true&includeOpen=true&includeClosed=true');
+    //print(response.body);
 
-   /* for (Map m in jsonDecode(response.body)) {
+    /* for (Map m in jsonDecode(response.body)) {
       prefs.setDouble(PrefHelper.PREF_ACCOUNT_BALANCE, m['Balance']);
       prefs.setString(PrefHelper.PREF_ACCOUNT_ID, m['AccountId'].toString());
     }*/
     List<dynamic> m = jsonDecode(response.body);
     _accounts.clear();
     m.forEach((account) {
-
-
       _accounts.add(Account.fromJson(account));
-
     });
-    _accounts.where((account) => account.status =='Open').toList();
-    _accounts.where((account) => account.status =='Quote').toList();
+    _accounts.where((account) => account.status == 'Open').toList();
+    _accounts.where((account) => account.status == 'Quote').toList();
     _accounts.where((account) => account.status == 'Closed').toList();
-
 
     /*for (Map m in jsonDecode(response.body))
       if (m['Status'] == 'Open')
@@ -56,32 +52,34 @@ class AccountsController with ChangeNotifier {
     return _accounts;
   }
 
-
-
-
   List<Account> getAccountsList() {
-      _accounts.sort((a,b) => -a.dateOpened.compareTo(b.dateOpened));
-      _accounts.forEach((element) {
-        // print('Dates sorted new to last : '+element.openedDate.toString());
-        // print('Account Status : '+element.status.toString());
-        // print('Balance OverDue : '+element.balanceOverdue.toString());
+    print(_accounts.length);
+    _accounts.sort((a, b) => -a.dateOpened.compareTo(b.dateOpened));
+    // _accounts.forEach((element) {
+    //   // print('Dates sorted new to last : '+element.openedDate.toString());
+    //   // print('Account Status : '+element.status.toString());
+    //   // print('Balance OverDue : '+element.balanceOverdue.toString());
 
-        print('Check '+element.dateOpened.toString()+' ' +element.status.toString()+' '  +element.balanceOverdue.toString());
-        // print('Balance OverDue : '+element.balanceOverdue.runtimeType.toString());
+    //   print('Check ' +
+    //       //element.dateOpened.toString() +
+    //       //' ' +
+    //       element.status.toString() +
+    //       ' ' +
+    //       element.balanceOverdue.toString());
+    //   // print('Balance OverDue : '+element.balanceOverdue.runtimeType.toString());
+    // });
 
-      });
-
-    return [..._accounts];
+    return _accounts;
   }
 
-  String formatCurrency(double price){
-   var dollarsInUSFormat = new NumberFormat.currency(locale: "en_US",
-        symbol: "\$");
+  String formatCurrency(double price) {
+    var dollarsInUSFormat =
+        new NumberFormat.currency(locale: "en_US", symbol: "\$");
 
-   var resultPrice = '0';
-   if(price !=null) {
-   resultPrice =  dollarsInUSFormat.format(double.tryParse(price.toString()));
-   }
-   return resultPrice;
+    var resultPrice = '0';
+    if (price != null) {
+      resultPrice = dollarsInUSFormat.format(double.tryParse(price.toString()));
+    }
+    return resultPrice;
   }
 }
