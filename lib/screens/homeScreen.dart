@@ -116,21 +116,32 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   List<String> qouteaccount = [];
+  List<String> qouteclosedaccount = [];
   bool isQoute() {
     qouteaccount.clear();
     //print("LegthL:::${accounts.length}");
     //print(closedaccount);
     for (int i = 0; i < accounts.length; i++) {
-      if (accounts[i].status == "Quote" || accounts[i].status == "Closed") {
+      if (accounts[i].status == "Quote") {
         qouteaccount.add('true');
+      } else if (accounts[i].status == "Closed") {
+        qouteclosedaccount.add('true');
       } else {
-        print(accounts[i].status);
+        //print(accounts[i].status);
         qouteaccount.add('false');
+        qouteclosedaccount.add('false');
       }
     }
-    print(qouteaccount);
 
-    return qouteaccount.contains('false') ? true : false;
+    if (qouteaccount.contains('false')) {
+      return true;
+    } else {
+      if (qouteaccount.length == 0 && qouteclosedaccount.length > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    }
   }
 
   payURL(Account account) async {
