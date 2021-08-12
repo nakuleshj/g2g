@@ -139,7 +139,7 @@ class ClientController with ChangeNotifier {
         });
     print(response.body);
     prefs.setString(PrefHelper.PREF_EMAIL_ID,
-        jsonDecode(response.body)['ContactMethodEmail']);
+        jsonDecode(response.body)['ContactMethodEmail'] ?? '');
     print('link' +
         '$apiBaseURL/Client/GetClientBasic?clientId=${prefs.getString('clientID')}');
     try {

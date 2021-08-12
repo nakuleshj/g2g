@@ -285,13 +285,22 @@ class _EditProfileState extends State<EditProfile> {
                                         splitName(widget.data?.name, '2'),
                                     'last_name':
                                         splitName(widget.data?.name, '1'),
-                                    'email': widget.data?.contactMethodEmail,
+                                    'email':
+                                        widget.data?.contactMethodEmail != null
+                                            ? widget.data?.contactMethodEmail
+                                            : '',
                                     'mobile_no':
                                         widget.data?.contactMethodMobile,
-                                    'home_phone_no':
-                                        widget.data?.contactMethodPhoneHome,
-                                    'work_phone_no':
-                                        widget.data?.contactMethodPhoneWork,
+                                    'home_phone_no': widget
+                                                .data?.contactMethodPhoneHome !=
+                                            null
+                                        ? widget.data?.contactMethodPhoneHome
+                                        : '',
+                                    'work_phone_no': widget
+                                                .data?.contactMethodPhoneWork !=
+                                            null
+                                        ? widget.data?.contactMethodPhoneWork
+                                        : '',
                                     'street_address': widget.data
                                         ?.addressPhysical?.streetAddressFull,
                                     'suburb':
